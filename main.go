@@ -2,71 +2,50 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/hfogelberg/toogo"
+	"github.com/kyokomi/cloudinary"
+	"github.com/urfave/negroni"
 )
 
-type Image struct {
-	Status struct {
-		Code        int    `db:"code" json:"code"`
-		Description string `db:"description" json:"description"`
-	} `db:"status" json:"status"`
-	Outputs []struct {
-		ID     string `db:"id" json:"id"`
-		Status struct {
-			Code        int    `db:"code" json:"code"`
-			Description string `db:"description" json:"description"`
-		} `db:"status" json:"status"`
-		CreatedAt time.Time `db:"created_at" json:"created_at"`
-		Model     struct {
-			ID         string    `db:"id" json:"id"`
-			Name       string    `db:"name" json:"name"`
-			CreatedAt  time.Time `db:"created_at" json:"created_at"`
-			AppID      string    `db:"app_id" json:"app_id"`
-			OutputInfo struct {
-				Message string `db:"message" json:"message"`
-				Type    string `db:"type" json:"type"`
-				TypeExt string `db:"type_ext" json:"type_ext"`
-			} `db:"output_info" json:"output_info"`
-			ModelVersion struct {
-				ID        string    `db:"id" json:"id"`
-				CreatedAt time.Time `db:"created_at" json:"created_at"`
-				Status    struct {
-					Code        int    `db:"code" json:"code"`
-					Description string `db:"description" json:"description"`
-				} `db:"status" json:"status"`
-			} `db:"model_version" json:"model_version"`
-			DisplayName string `db:"display_name" json:"display_name"`
-		} `db:"model" json:"model"`
-		Input struct {
-			ID   string `db:"id" json:"id"`
-			Data struct {
-				Image struct {
-					URL string `db:"url" json:"url"`
-				} `db:"image" json:"image"`
-			} `db:"data" json:"data"`
-		} `db:"input" json:"input"`
-		Data struct {
-			Concepts []struct {
-				ID    string  `db:"id" json:"id"`
-				Name  string  `db:"name" json:"name"`
-				Value float64 `db:"value" json:"value"`
-				AppID string  `db:"app_id" json:"app_id"`
-			} `db:"concepts" json:"concepts"`
-		} `db:"data" json:"data"`
-	} `db:"outputs" json:"outputs"`
-}
+const CloudinaryRoot = "http://res.cloudinary.com/golizzard/image/upload/h_200,c_scale/v1507814747/"
 
 func main() {
-	url := "https://api.clarifai.com/v2/models/aaa03c23b3724a16a56b629203edc62c/outputs"
+	r := mux.NewRouter().StrictSlash(false)
+	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/upload", uploadHandler)
+	r.HandleFunc("/result/{id}", resultHandler)
 
-	img := "https://puppaint.com/img/portfolio/lucky.jpg"
+	static := http.StripPrefix("/public/", http.FileServer(http.Dir("public")))
+	r.PathPrefix("/public").Handler(static)
+
+	mux := http.NewServeMux()
+	mux.Handle("/", r)
+
+	port := toogo.Getenv("PORT", ":80")
+	n := negroni.Classic()
+	n.UseHandler(mux)
+	http.ListenAndServe(port, n)
+
+}
+
+func recognizeImage(img string) ([]Tag, error) {
+	var tags []Tag
+	var image *Image
+
+	url := "https://api.clarifai.com/v2/models/aaa03c23b3724a16a56b629203edc62c/outputs"
 	jsonInput := fmt.Sprintf(`{"inputs": [{"data": {"image": {"url": "%s"}}}]}`, img)
 	jsonStr := []byte(jsonInput)
 
@@ -74,7 +53,7 @@ func main() {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		log.Printf("Error creating request %s\n", err.Error())
-		return
+		return tags, err
 	}
 
 	key := fmt.Sprintf("Key %s", toogo.Getenv("CLARIFAI_TEST_APP", ""))
@@ -83,22 +62,119 @@ func main() {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Error posting to Clarifai %s\n", err.Error())
-		return
+		return tags, err
 	}
 	defer resp.Body.Close()
-	fmt.Printf("Response status %s\n", resp.Status)
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var image *Image
 	err = json.Unmarshal(body, &image)
 	if err != nil {
 		fmt.Printf("Error unmarshaling image data %s\n", err.Error())
-		return
+		return tags, err
 	}
 
 	concepts := image.Outputs[0].Data.Concepts
 	for _, c := range concepts {
-		fmt.Printf("%s: %0.3f\n", c.Name, c.Value)
+		tag := Tag{
+			Name:  c.Name,
+			Value: c.Value,
+		}
+		tags = append(tags, tag)
 	}
 
+	return tags, nil
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	tpl, err := template.New("").ParseFiles("templates/index.html", "templates/layout.html")
+	err = tpl.ExecuteTemplate(w, "layout", nil)
+	if err != nil {
+		log.Fatalln("Error serving index template ", err.Error())
+		return
+	}
+}
+
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		log.Printf("Error reading form image %s\n", err.Error())
+		return
+	}
+	defer file.Close()
+
+	root := "./public/temp/"
+	os.Mkdir(root, 0700)
+
+	// Generate a file name
+	id := fmt.Sprint(time.Now().Unix())
+	path := root + "/" + id + ".jpg"
+
+	out, err := os.Create(path)
+	if err != nil {
+		log.Printf("Error creating file in public/temp %s", err.Error())
+		return
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		log.Printf("Error writing file to public/tmp %s", err.Error())
+		return
+	}
+
+	if err := cloudinaryUpload(path, id); err != nil {
+		log.Printf("Error uploading to Cloudinary %s\n", err.Error())
+		return
+	}
+
+	fmt.Println("Done!")
+	http.Redirect(w, r, "/result/"+id, http.StatusPermanentRedirect)
+
+}
+
+func resultHandler(w http.ResponseWriter, r *http.Request) {
+	url := r.URL.String()
+	u := strings.Split(url, "/")
+	id := u[len(u)-1]
+
+	img := fmt.Sprintf("%s%s.jpg", CloudinaryRoot, id)
+
+	tags, err := recognizeImage(img)
+	if err != nil {
+		return
+	}
+
+	decoded := Decoded{
+		Url:  img,
+		Tags: tags,
+	}
+
+	tpl, err := template.New("").ParseFiles("templates/result.html", "templates/layout.html")
+	err = tpl.ExecuteTemplate(w, "layout", decoded)
+	if err != nil {
+		log.Fatalln("Error serving result template ", err.Error())
+		return
+	}
+}
+
+func cloudinaryUpload(src string, fileName string) error {
+	ctx := context.Background()
+
+	key := toogo.Getenv("CLOUDINARY_API_KEY", "925374862654622")
+	secret := toogo.Getenv("CLOUDINARY_API_SECRET", "doHBawwQUw7L2vYVKq5Dl9wbdUE")
+	cloud := toogo.Getenv("CLOUDINARY_CLOUD_NAME", "golizzard")
+
+	con := fmt.Sprintf("cloudinary://%s:%s@%s", key, secret, cloud)
+	ctx = cloudinary.NewContext(ctx, con)
+
+	data, _ := ioutil.ReadFile(src)
+
+	if err := cloudinary.UploadStaticImage(ctx, fileName, bytes.NewBuffer(data)); err != nil {
+		log.Println("Error uploading image to cloudinary")
+		return err
+	}
+
+	_ = os.Remove(src)
+
+	return nil
 }

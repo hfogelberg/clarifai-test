@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html {
+    font-family: Arial', sans-serif;
+ font-size: 16px;
+    font-weight: 300;
+    text-rendering: optimizeLegibility;
+}
+
+body,
+html {
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background-color: #ecf0f1;
+    background-size: cover;
+    background-position: center;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-top: 10vh;
+    width: 100vw;
+    padding: 0 2em 2em 2em;
+}
+
+form {
+    width: 5em;
+    margin: 0 auto;
+    font-size: 2.5em;
+}
+
+.index {
+    margin-top: 10vh;
+}
+
+h1 {
+    font-size: 3.5em;
+    font-weight: 400;
+    text-align: center;
+}
+
+h2 {
+    margin-top: 0.5em;
+    margin-bottom: 0.8em;
+    text-align: center;
+    font-size: 1.8em;
+    font-weight: bold;
+}
+
+
+/* Anchor tags */
+
+a:hover {
+    text-decoration: none;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+a:focus {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
+
+*:focus {
+    outline: 0 !important;
+}
+
+
+/*Header*/
+
+header {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    height: 4em;
+    line-height: 4em;
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    background-color: rgba(52, 73, 94, 0.4);
+}
+
+header h1 {
+    font-size: 1.4em;
+    color: #3498db;
+    font-weight: bold;
+    display: inline;
+}
+
+.hamburger {
+    padding: 0 0.5em 0 1em;
+    cursor: pointer;
+    font-size: 3em;
+    background-color: transparent;
+    border: none;
+    color: #ecf0f1
+}
+
+header a {
+    font-size: 1.4em;
+    color: #ecf0f1;
+    font-weight: 300;
+}
+
+/* Buttons */
+.btn {
+    border: none;
+    background-color: #EDCDC2;
+    outline: none;
+    height: 3em;
+    width: 3em;
+}
+
+.btn-warning {
+    border: none;
+    background-color: #EDCDC2;
+    outline: none;
+    height: 3em;
+    width: 3em;
+}
+
+#submit {
+    font-size: 1.3em;
+    margin-left: 12ch;
+    height: 2em;
+    width: 10ch;
+    color: #ecf0f1;
+    background-color: #f39c12;
+    border-radius: 10px;
+}

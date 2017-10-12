@@ -1,0 +1,13 @@
+{{define "content"}}
+  <div class="result">
+    <h2>Result</h2>
+
+    <img src="{{.Url}}" alt="{{.Url}}">
+
+    <ul>
+    {{range .Tags}}
+      <li>{{.Name}}: {{.Value}}</li>
+    {{end}}
+    </ul>
+  </div>
+{{end}}

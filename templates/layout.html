@@ -1,0 +1,21 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Golang Clarifai</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="/public/styles/reset.css">
+    <link rel="stylesheet" href="/public/styles/master.css">
+  </head>
+  <body>
+    <header>
+        <a href="/"><h1>Golang Clarifai Test</h1></a>
+      </div>
+    </header>
+    <div class="container">
+      {{template "content" .}}
+    </div>
+  </body>
+{{end}}

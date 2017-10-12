@@ -1,0 +1,13 @@
+{{define "content"}}
+  <div class="create">
+    <h2>Upload Image</h2>
+
+    <p class="comment">
+      This application is an example of using <a href="https://clarifai.com">Clarifai</a>'s image recognition API.
+    </p>
+    <form enctype="multipart/form-data" action="/upload" method="post">
+      <input type="file" name="image" value="Upload">
+      <input type="submit" value="Upload">
+    </form>
+  </div>
+{{end}}
