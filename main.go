@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/hfogelberg/toogo"
 	"github.com/kyokomi/cloudinary"
 	"github.com/urfave/negroni"
 )
@@ -39,7 +38,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", r)
 
-	port := toogo.Getenv("PORT", ":80")
+	port := getEnv("PORT", ":80")
 	n := negroni.Classic()
 	n.UseHandler(mux)
 	http.ListenAndServe(port, n)
@@ -61,7 +60,7 @@ func recognizeImage(img string) ([]Tag, error) {
 		return tags, err
 	}
 
-	key := fmt.Sprintf("Key %s", toogo.Getenv("CLARIFAI_TEST_APP", ""))
+	key := fmt.Sprintf("Key %s", getEnv("CLARIFAI_TEST_APP", ""))
 	req.Header.Set("Authorization", key)
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
@@ -170,9 +169,9 @@ func resultHandler(w http.ResponseWriter, r *http.Request) {
 func cloudinaryUpload(src string, fileName string) error {
 	ctx := context.Background()
 
-	key := toogo.Getenv("CLOUDINARY_API_KEY", "925374862654622")
-	secret := toogo.Getenv("CLOUDINARY_API_SECRET", "doHBawwQUw7L2vYVKq5Dl9wbdUE")
-	cloud := toogo.Getenv("CLOUDINARY_CLOUD_NAME", "golizzard")
+	key := getEnv("CLOUDINARY_API_KEY", "")
+	secret := getEnv("CLOUDINARY_API_SECRET", "")
+	cloud := getEnv("CLOUDINARY_CLOUD_NAME", "")
 
 	con := fmt.Sprintf("cloudinary://%s:%s@%s", key, secret, cloud)
 	ctx = cloudinary.NewContext(ctx, con)
@@ -193,4 +192,12 @@ func formatValue(val float64) string {
 	o := strconv.Itoa(int(val * 100))
 	ret := o + " %"
 	return ret
+}
+
+func getEnv(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		return defaultValue
+	}
+	return value
 }
