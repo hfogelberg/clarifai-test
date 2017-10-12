@@ -4,10 +4,13 @@
 
     <p class="comment">
       This application is an example of using <a href="https://clarifai.com">Clarifai</a>'s image recognition API.
+      <br>
+      The file must be less than 195 Kb in size. Otherwise analyzes will fail!
     </p>
     <form enctype="multipart/form-data" action="/upload" method="post">
-      <input type="file" name="image" value="Upload">
-      <input type="submit" value="Upload">
+      <input type="file" name="image" id="file" class="inputfile" />
+      <label for="file">1. Choose a file</label>
+      <input type="submit" value="2. Upload">
     </form>
   </div>
 {{end}}

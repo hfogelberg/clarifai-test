@@ -6,8 +6,8 @@
 }
 
 html {
-    font-family: Arial', sans-serif;
- font-size: 16px;
+    font-family: 'Raleway', sans-serif;
+    font-size: 16px;
     font-weight: 300;
     text-rendering: optimizeLegibility;
 }
@@ -43,6 +43,7 @@ form {
 }
 
 h1 {
+    margin-left: 2ch;
     font-size: 3.5em;
     font-weight: 400;
     text-align: center;
@@ -50,10 +51,11 @@ h1 {
 
 h2 {
     margin-top: 0.5em;
-    margin-bottom: 0.8em;
+    margin-bottom: 1.5em;
     text-align: center;
-    font-size: 1.8em;
+    font-size: 2.3em;
     font-weight: bold;
+    color: rgba(41, 128, 185, 1.0);
 }
 
 
@@ -100,18 +102,9 @@ header {
 
 header h1 {
     font-size: 1.4em;
-    color: #3498db;
+    color: rgba(142, 68, 173, 1.0);
     font-weight: bold;
     display: inline;
-}
-
-.hamburger {
-    padding: 0 0.5em 0 1em;
-    cursor: pointer;
-    font-size: 3em;
-    background-color: transparent;
-    border: none;
-    color: #ecf0f1
 }
 
 header a {
@@ -120,29 +113,100 @@ header a {
     font-weight: 300;
 }
 
-/* Buttons */
-.btn {
-    border: none;
-    background-color: #EDCDC2;
-    outline: none;
-    height: 3em;
-    width: 3em;
+/* Index */
+p.comment {
+    text-align: center;
+    font-size: 1.2em;
+    margin-bottom: 2ch;
 }
 
-.btn-warning {
-    border: none;
-    background-color: #EDCDC2;
-    outline: none;
-    height: 3em;
-    width: 3em;
+.inputfile {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
 }
 
-#submit {
+.inputfile+label {
+    max-width: 90%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0.625rem 1.25rem;
+    background-color: rgba(22, 160, 133, 1.0);
+    border-radius: 20px;
+}
+
+.inputfile:focus+label,
+.inputfile+label:hover {
+    background-color: rgba(22, 160, 133, 1.0);
+}
+
+input[type="submit"] {
+    margin-top: 2ch;
+    max-width: 90%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0.625rem 1.25rem;
+    background-color: rgba(231, 76, 60, 1.0);
+    border-radius: 20px;
+}
+
+/* Result */
+.result-img {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.btn-again {
+    margin-top: 2ch;
+    max-width: 90%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0.625rem 1.25rem;
+    background-color:rgba(41, 128, 185, 1.0);
+    color: rgba(236, 240, 241, 1.0);
+    border-radius: 20px;
+    text-align: center;
+}
+
+.results {
+    margin-top: 2em;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+table {
     font-size: 1.3em;
-    margin-left: 12ch;
-    height: 2em;
-    width: 10ch;
-    color: #ecf0f1;
-    background-color: #f39c12;
-    border-radius: 10px;
+    color: rgba(44, 62, 80, 1.0);
+}
+
+td {
+    padding-right: 2ch;
+}
+
+tr {
+    line-height: 1.5em;
+}
+
+td:first-child {
+    text-transform: capitalize;
 }

@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +22,10 @@ import (
 )
 
 const CloudinaryRoot = "http://res.cloudinary.com/golizzard/image/upload/h_200,c_scale/v1507814747/"
+
+var fm = template.FuncMap{
+	"formatValue": formatValue,
+}
 
 func main() {
 	r := mux.NewRouter().StrictSlash(false)
@@ -74,12 +79,17 @@ func recognizeImage(img string) ([]Tag, error) {
 	}
 
 	concepts := image.Outputs[0].Data.Concepts
+	i := 0
 	for _, c := range concepts {
 		tag := Tag{
 			Name:  c.Name,
 			Value: c.Value,
 		}
 		tags = append(tags, tag)
+		i++
+		if i == 10 {
+			break
+		}
 	}
 
 	return tags, nil
@@ -149,7 +159,7 @@ func resultHandler(w http.ResponseWriter, r *http.Request) {
 		Tags: tags,
 	}
 
-	tpl, err := template.New("").ParseFiles("templates/result.html", "templates/layout.html")
+	tpl, err := template.New("").Funcs(fm).ParseFiles("templates/result.html", "templates/layout.html")
 	err = tpl.ExecuteTemplate(w, "layout", decoded)
 	if err != nil {
 		log.Fatalln("Error serving result template ", err.Error())
@@ -177,4 +187,10 @@ func cloudinaryUpload(src string, fileName string) error {
 	_ = os.Remove(src)
 
 	return nil
+}
+
+func formatValue(val float64) string {
+	o := strconv.Itoa(int(val * 100))
+	ret := o + " %"
+	return ret
 }
